@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
@@ -8,9 +9,18 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Amazon Bulk Registration API")
 
+# Allow CORS from frontend origins (local dev + Vercel deployment)
+allowed_origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+]
+frontend_url = os.getenv("FRONTEND_URL")
+if frontend_url:
+    allowed_origins.append(frontend_url)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

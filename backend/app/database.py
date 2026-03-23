@@ -1,3 +1,4 @@
+import os
 from sqlalchemy import create_engine, JSON
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 from pydantic_settings import BaseSettings
@@ -12,8 +13,12 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-# Fall back to SQLite if PostgreSQL is unavailable
+# Railway provides DATABASE_URL with postgresql:// prefix; psycopg requires postgresql+psycopg://
 _db_url = settings.database_url
+if _db_url.startswith("postgresql://"):
+    _db_url = _db_url.replace("postgresql://", "postgresql+psycopg://", 1)
+
+# Fall back to SQLite if PostgreSQL is unavailable (local dev only)
 use_sqlite = False
 try:
     _test_engine = create_engine(_db_url)
