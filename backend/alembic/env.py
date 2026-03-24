@@ -1,3 +1,4 @@
+import os
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
@@ -7,6 +8,13 @@ from app.models import *  # noqa: F401, F403
 config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+
+# Override sqlalchemy.url from DATABASE_URL env var (Railway provides this)
+database_url = os.getenv("DATABASE_URL")
+if database_url:
+    if database_url.startswith("postgresql://"):
+        database_url = database_url.replace("postgresql://", "postgresql+psycopg://", 1)
+    config.set_main_option("sqlalchemy.url", database_url)
 
 target_metadata = Base.metadata
 
